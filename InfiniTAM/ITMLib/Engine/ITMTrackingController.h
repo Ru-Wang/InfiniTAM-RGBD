@@ -51,7 +51,7 @@ namespace ITMLib
 
 			static Vector2i GetTrackedImageSize(const ITMLibSettings *settings, const Vector2i& imgSize_rgb, const Vector2i& imgSize_d)
 			{
-				return settings->trackerType == ITMLibSettings::TRACKER_COLOR ? imgSize_rgb : imgSize_d;
+				return settings->trackerType == ITMLibSettings::TRACKER_COLOR || settings->trackerType == ITMLibSettings::TRACKER_RGBD ? imgSize_rgb : imgSize_d;
 			}
 
 			// Suppress the default copy constructor and assignment operator

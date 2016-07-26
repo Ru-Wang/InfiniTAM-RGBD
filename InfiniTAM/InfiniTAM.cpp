@@ -37,7 +37,8 @@ static void CreateDefaultImageSource(ImageSourceEngine* & imageSource, IMUSource
 		else
 		{
 			printf("using imu data: %s\n", filename_imu);
-			imageSource = new RawFileReader(calibFile, filename1, filename2, Vector2i(320, 240), 0.5f);
+			//imageSource = new RawFileReader(calibFile, filename1, filename2, Vector2i(640, 480), 1.0f, Vector2i(320, 240), 0.5f);
+			imageSource = new RawFileReader(calibFile, filename1, filename2, Vector2i(640, 480), 1.0f, Vector2i(640, 480), 1.0f);
 			imuSource = new IMUSourceEngine(filename_imu);
 		}
 	}

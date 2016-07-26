@@ -11,6 +11,7 @@
 #include "ITMTracker.h"
 
 #include "DeviceSpecific/CPU/ITMColorTracker_CPU.h"
+#include "DeviceSpecific/CPU/ITMRGBDepthTracker_CPU.h"
 #include "DeviceSpecific/CPU/ITMDepthTracker_CPU.h"
 #include "DeviceSpecific/CPU/ITMWeightedICPTracker_CPU.h"
 #include "DeviceSpecific/CPU/ITMRenTracker_CPU.h"
@@ -25,6 +26,7 @@
 
 #ifdef COMPILE_WITH_METAL
 #include "DeviceSpecific/Metal/ITMDepthTracker_Metal.h"
+#include "DeviceSpecific/Metal/ITMRGBDepthTracker_Metal.h"
 #endif
 
 namespace ITMLib
@@ -54,6 +56,7 @@ namespace ITMLib
       ITMTrackerFactory()
       {
         makers.insert(std::make_pair(ITMLibSettings::TRACKER_COLOR, &MakeColourTracker));
+        makers.insert(std::make_pair(ITMLibSettings::TRACKER_RGBD, &MakeRGBDepthTracker));
         makers.insert(std::make_pair(ITMLibSettings::TRACKER_ICP, &MakeICPTracker));
 		makers.insert(std::make_pair(ITMLibSettings::TRACKER_WICP, &MakeWeightedICPTracker));
         makers.insert(std::make_pair(ITMLibSettings::TRACKER_IMU, &MakeIMUTracker));
@@ -119,6 +122,70 @@ namespace ITMLib
         }
 
         DIEWITHEXCEPTION("Failed to make colour tracker");
+      }
+
+      /**
+       * \brief Makes a RGBD tracker.
+       */
+      static ITMTracker *MakeRGBDepthTracker(const Vector2i& trackedImageSize, const ITMLibSettings *settings, const ITMLowLevelEngine *lowLevelEngine,
+                                             ITMIMUCalibrator *imuCalibrator, ITMScene<TVoxel,TIndex> *scene)
+      {
+        switch(settings->deviceType)
+        {
+          case ITMLibSettings::DEVICE_CPU:
+          {
+            ITMCompositeTracker *compositeTracker = new ITMCompositeTracker(2);
+            compositeTracker->SetTracker(new ITMIMUTracker(imuCalibrator), 0);
+            compositeTracker->SetTracker(
+              new ITMRGBDepthTracker_CPU(
+                trackedImageSize,
+                settings->trackingRegime,
+                settings->noHierarchyLevels,
+                lowLevelEngine
+              ), 1
+            );
+            return compositeTracker;
+          }
+          case ITMLibSettings::DEVICE_CUDA:
+          {
+#ifndef COMPILE_WITHOUT_CUDA
+            ITMCompositeTracker *compositeTracker = new ITMCompositeTracker(2);
+            compositeTracker->SetTracker(new ITMIMUTracker(imuCalibrator), 0);
+            compositeTracker->SetTracker(
+              new ITMColorTracker_CUDA(
+                trackedImageSize,
+                settings->trackingRegime,
+                settings->noHierarchyLevels,
+                lowLevelEngine
+              ), 1
+            );
+            return compositeTracker;
+#else
+            break;
+#endif
+          }
+          case ITMLibSettings::DEVICE_METAL:
+          {
+#ifdef COMPILE_WITH_METAL
+            ITMCompositeTracker *compositeTracker = new ITMCompositeTracker(2);
+            compositeTracker->SetTracker(new ITMIMUTracker(imuCalibrator), 0);
+            compositeTracker->SetTracker(
+              new ITMRGBDepthTracker_CPU(
+                trackedImageSize,
+                settings->trackingRegime,
+                settings->noHierarchyLevels,
+                lowLevelEngine
+              ), 1
+            );
+            return compositeTracker;
+#else
+            break;
+#endif
+          }
+          default: break;
+        }
+
+        DIEWITHEXCEPTION("Failed to make RGBDepth tracker");
       }
 
       /**

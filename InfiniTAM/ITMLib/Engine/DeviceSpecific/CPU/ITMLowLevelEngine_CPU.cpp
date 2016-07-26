@@ -102,3 +102,31 @@ void ITMLowLevelEngine_CPU::GradientY(ITMShort4Image *grad_out, const ITMUChar4I
 	for (int y = 1; y < imgSize.y - 1; y++) for (int x = 1; x < imgSize.x - 1; x++)
 		gradientY(grad, x, y, image, imgSize);
 }
+
+void ITMLowLevelEngine_CPU::GradientX(ITMFloatImage *grad_out, const ITMFloatImage *depth_in) const
+{
+	grad_out->ChangeDims(depth_in->noDims);
+	Vector2i imgSize = depth_in->noDims;
+
+	float *grad = grad_out->GetData(MEMORYDEVICE_CPU);
+	const float *image = depth_in->GetData(MEMORYDEVICE_CPU);
+
+	memset(grad, 0, imgSize.x * imgSize.y * sizeof(float));
+
+	for (int y = 1; y < imgSize.y - 1; y++) for (int x = 1; x < imgSize.x - 1; x++)
+			gradientX(grad, x, y, image, imgSize);
+}
+
+void ITMLowLevelEngine_CPU::GradientY(ITMFloatImage *grad_out, const ITMFloatImage *depth_in) const
+{
+	grad_out->ChangeDims(depth_in->noDims);
+	Vector2i imgSize = depth_in->noDims;
+
+	float *grad = grad_out->GetData(MEMORYDEVICE_CPU);
+	const float *image = depth_in->GetData(MEMORYDEVICE_CPU);
+
+	memset(grad, 0, imgSize.x * imgSize.y * sizeof(float));
+
+	for (int y = 1; y < imgSize.y - 1; y++) for (int x = 1; x < imgSize.x - 1; x++)
+			gradientY(grad, x, y, image, imgSize);
+}

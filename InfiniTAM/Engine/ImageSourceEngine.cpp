@@ -1,4 +1,4 @@
-// Copyright 2014-2015 Isis Innovation Limited and the authors of InfiniTAM
+// Copyright 2014 Isis Innovation Limited and the authors of InfiniTAM
 
 #include "ImageSourceEngine.h"
 
@@ -106,12 +106,13 @@ Vector2i ImageFileReader::getRGBImageSize(void)
 	return cached_depth->noDims;
 }
 
-CalibSource::CalibSource(const char *calibFilename, Vector2i setImageSize, float ratio)
+CalibSource::CalibSource(const char *calibFilename, Vector2i rgbImageSize, float rgbRatio, Vector2i depthImageSize, float depthRatio)
 	: ImageSourceEngine(calibFilename)
 {
-	this->imgSize = setImageSize;
-	this->ResizeIntrinsics(calib.intrinsics_d, ratio);
-	this->ResizeIntrinsics(calib.intrinsics_rgb, ratio);
+	this->rgbImageSize = rgbImageSize;
+	this->depthImageSize = depthImageSize;
+	this->ResizeIntrinsics(calib.intrinsics_d, depthRatio);
+	this->ResizeIntrinsics(calib.intrinsics_rgb, rgbRatio);
 }
 
 void CalibSource::ResizeIntrinsics(ITMIntrinsics &intrinsics, float ratio)
@@ -123,12 +124,13 @@ void CalibSource::ResizeIntrinsics(ITMIntrinsics &intrinsics, float ratio)
 	intrinsics.projectionParamsSimple.all *= ratio;
 }
 
-RawFileReader::RawFileReader(const char *calibFilename, const char *rgbImageMask, const char *depthImageMask, Vector2i setImageSize, float ratio) 
+RawFileReader::RawFileReader(const char *calibFilename, const char *rgbImageMask, const char *depthImageMask, Vector2i rgbImageSize, float rgbRatio, Vector2i depthImageSize, float depthRatio)
 	: ImageSourceEngine(calibFilename)
 {
-	this->imgSize = setImageSize;
-	this->ResizeIntrinsics(calib.intrinsics_d, ratio);
-	this->ResizeIntrinsics(calib.intrinsics_rgb, ratio);
+	this->rgbImageSize = rgbImageSize;
+	this->depthImageSize = depthImageSize;
+	this->ResizeIntrinsics(calib.intrinsics_d, depthRatio);
+	this->ResizeIntrinsics(calib.intrinsics_rgb, rgbRatio);
 	
 	strncpy(this->rgbImageMask, rgbImageMask, BUF_SIZE);
 	strncpy(this->depthImageMask, depthImageMask, BUF_SIZE);
@@ -155,8 +157,8 @@ void RawFileReader::loadIntoCache(void)
 	cachedFrameNo = currentFrameNo;
 
 	//TODO> make nicer
-	cached_rgb = new ITMUChar4Image(imgSize, MEMORYDEVICE_CPU);
-	cached_depth = new ITMShortImage(imgSize, MEMORYDEVICE_CPU);
+	cached_rgb = new ITMUChar4Image(rgbImageSize, MEMORYDEVICE_CPU);
+	cached_depth = new ITMShortImage(depthImageSize, MEMORYDEVICE_CPU);
 
 	char str[2048]; FILE *f; bool success = false;
 
@@ -165,9 +167,9 @@ void RawFileReader::loadIntoCache(void)
 	f = fopen(str, "rb");
 	if (f)
 	{
-		size_t tmp = fread(cached_rgb->GetData(MEMORYDEVICE_CPU), sizeof(Vector4u), imgSize.x * imgSize.y, f);
+		size_t tmp = fread(cached_rgb->GetData(MEMORYDEVICE_CPU), sizeof(Vector4u), rgbImageSize.x * rgbImageSize.y, f);
 		fclose(f);
-		if (tmp == (size_t)imgSize.x * imgSize.y) success = true;
+		if (tmp == (size_t)rgbImageSize.x * rgbImageSize.y) success = true;
 	}
 	if (!success)
 	{
@@ -179,9 +181,9 @@ void RawFileReader::loadIntoCache(void)
 	f = fopen(str, "rb");
 	if (f)
 	{
-		size_t tmp = fread(cached_depth->GetData(MEMORYDEVICE_CPU), sizeof(short), imgSize.x * imgSize.y, f);
+		size_t tmp = fread(cached_depth->GetData(MEMORYDEVICE_CPU), sizeof(short), depthImageSize.x * depthImageSize.y, f);
 		fclose(f);
-		if (tmp == (size_t)imgSize.x * imgSize.y) success = true;
+		if (tmp == (size_t)depthImageSize.x * depthImageSize.y) success = true;
 	}
 	if (!success)
 	{

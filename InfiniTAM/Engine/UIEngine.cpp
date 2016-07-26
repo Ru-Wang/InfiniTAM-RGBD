@@ -77,10 +77,12 @@ void UIEngine::glutDisplayFunction()
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 
-	glColor3f(1.0f, 0.0f, 0.0f); glRasterPos2f(0.85f, -0.962f);
+	glColor3f(1.0f, 0.0f, 0.0f); glRasterPos2f(0.0f, -0.95f);
 
-	char str[200]; sprintf(str, "%04.2lf", uiEngine->processedTime);
-	safe_glutBitmapString(GLUT_BITMAP_HELVETICA_18, (const char*)str);
+	Vector3f R, T;
+	uiEngine->mainEngine->GetTrackingState()->pose_d->GetParams(T, R);
+  char str[200]; sprintf(str, "[%f, %f, %f], [%f, %f, %f], %f", -R.x, -R.y, -R.z, -T.x, -T.y, -T.z, uiEngine->processedTime);
+	safe_glutBitmapString(GLUT_BITMAP_HELVETICA_12, (const char*)str);
 
 	glRasterPos2f(-0.95f, -0.95f);
 	if (uiEngine->freeviewActive)

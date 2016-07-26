@@ -21,6 +21,8 @@ namespace ITMLib
 
 			void GradientX(ITMShort4Image *grad_out, const ITMUChar4Image *image_in) const;
 			void GradientY(ITMShort4Image *grad_out, const ITMUChar4Image *image_in) const;
+			void GradientX(ITMFloatImage *grad_out, const ITMFloatImage *depth_in) const;
+			void GradientY(ITMFloatImage *grad_out, const ITMFloatImage *depth_in) const;
 
 			ITMLowLevelEngine_CPU(void);
 			~ITMLowLevelEngine_CPU(void);

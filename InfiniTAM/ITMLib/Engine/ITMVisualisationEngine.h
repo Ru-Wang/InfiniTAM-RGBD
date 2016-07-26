@@ -63,8 +63,11 @@ namespace ITMLib
 			/** Create an image of reference points and normals as
 			required by the ITMLib::Engine::ITMDepthTracker classes.
 			*/
-			virtual void CreateICPMaps(const ITMView *view, ITMTrackingState *trackingState, 
+			virtual void CreateICPMaps(const ITMView *view, ITMTrackingState *trackingState,
 				ITMRenderState *renderState) const = 0;
+
+			virtual void CreateICPMaps(const ITMView *view, ITMTrackingState *trackingState,
+				ITMRenderState *renderState, bool skipPoints) const = 0;
 
 			/** Create an image of reference points and normals as
 			required by the ITMLib::Engine::ITMDepthTracker classes.
@@ -73,6 +76,9 @@ namespace ITMLib
 			*/
 			virtual void ForwardRender(const ITMView *view, ITMTrackingState *trackingState,
 				ITMRenderState *renderState) const = 0;
+
+			virtual void ForwardRender(const ITMView *view, ITMTrackingState *trackingState,
+				ITMRenderState *renderState, bool skipPoints) const = 0;
 
 			/** Creates a render state, containing rendering info
 			for the scene.

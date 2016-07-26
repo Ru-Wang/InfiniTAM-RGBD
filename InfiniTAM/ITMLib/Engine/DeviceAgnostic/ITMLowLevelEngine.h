@@ -121,3 +121,57 @@ _CPU_AND_GPU_CODE_ inline void gradientY(DEVICEPTR(Vector4s) *grad, int x, int y
 
 	grad[x + y * imgSize.x] = d_out;
 }
+
+_CPU_AND_GPU_CODE_ inline void gradientX(DEVICEPTR(float) *grad, int x, int y, const CONSTPTR(float) *depth, Vector2i imgSize)
+{
+	float d_out = 0;
+	int depthIdx, no_good_depth = 0;
+
+	depthIdx = (x + 1) + (y - 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x - 1) + (y - 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x + 1) + (y + 0) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx] * 2; no_good_depth += 2; }
+
+	depthIdx = (x - 1) + (y + 0) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx] * 2; no_good_depth += 2; }
+
+	depthIdx = (x + 1) + (y + 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x - 1) + (y + 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx]; no_good_depth += 1; }
+
+	d_out /= no_good_depth;
+	grad[x + y * imgSize.x] = d_out;
+}
+
+_CPU_AND_GPU_CODE_ inline void gradientY(DEVICEPTR(float) *grad, int x, int y, const CONSTPTR(float) *depth, Vector2i imgSize)
+{
+	float d_out = 0;
+	int depthIdx, no_good_depth = 0;
+
+	depthIdx = (x - 1) + (y + 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x - 1) + (y - 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x + 0) + (y + 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx] * 2; no_good_depth += 2; }
+
+	depthIdx = (x + 0) + (y - 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx] * 2; no_good_depth += 2; }
+
+	depthIdx = (x + 1) + (y + 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += depth[depthIdx]; no_good_depth += 1; }
+
+	depthIdx = (x + 1) + (y - 1) * imgSize.x;
+	if (depth[depthIdx] > 0.0) { d_out += -depth[depthIdx]; no_good_depth += 1; }
+
+	d_out /= no_good_depth;
+	grad[x + y * imgSize.x] = d_out;
+}

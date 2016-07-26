@@ -17,7 +17,9 @@ namespace ITMLib
 
 			ITMFloat4Image *pointsMap;
 			ITMFloat4Image *normalsMap;
+			ITMFloat4Image *coloursMap;
 			Vector4f intrinsics;
+			Vector4f intrinsics_rgb;
 
 			bool manageData;
 
@@ -30,6 +32,7 @@ namespace ITMLib
 				if (!skipAllocation) {
 					this->pointsMap = new ITMFloat4Image(imgSize, memoryType);
 					this->normalsMap = new ITMFloat4Image(imgSize, memoryType);
+					this->coloursMap = new ITMFloat4Image(imgSize, memoryType);
 				}
 			}
 
@@ -43,6 +46,7 @@ namespace ITMLib
 			{ 
 				this->pointsMap->UpdateDeviceFromHost();
 				this->normalsMap->UpdateDeviceFromHost();
+				this->coloursMap->UpdateDeviceFromHost();
 			}
 
 			~ITMSceneHierarchyLevel(void)
@@ -50,6 +54,7 @@ namespace ITMLib
 				if (manageData) {
 					delete pointsMap;
 					delete normalsMap;
+					delete coloursMap;
 				}
 			}
 

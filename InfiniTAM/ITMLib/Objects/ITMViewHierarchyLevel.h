@@ -17,6 +17,7 @@ namespace ITMLib
 
 			ITMUChar4Image *rgb; ITMFloatImage *depth;
 			ITMShort4Image *gradientX_rgb, *gradientY_rgb;
+			ITMFloatImage *gradientX_depth, *gradientY_depth;
 			Vector4f intrinsics;
 
 			bool manageData;
@@ -32,6 +33,8 @@ namespace ITMLib
 					this->depth = new ITMFloatImage(imgSize, memoryType);
 					this->gradientX_rgb = new ITMShort4Image(imgSize, memoryType);
 					this->gradientY_rgb = new ITMShort4Image(imgSize, memoryType);
+					this->gradientX_depth = new ITMFloatImage(imgSize, memoryType);
+					this->gradientY_depth = new ITMFloatImage(imgSize, memoryType);
 				}
 			}
 
@@ -41,6 +44,8 @@ namespace ITMLib
 				this->depth->UpdateHostFromDevice();
 				this->gradientX_rgb->UpdateHostFromDevice();
 				this->gradientY_rgb->UpdateHostFromDevice();
+				this->gradientX_depth->UpdateHostFromDevice();
+				this->gradientY_depth->UpdateHostFromDevice();
 			}
 
 			void UpdateDeviceFromHost()
@@ -49,6 +54,8 @@ namespace ITMLib
 				this->depth->UpdateHostFromDevice();
 				this->gradientX_rgb->UpdateDeviceFromHost();
 				this->gradientY_rgb->UpdateDeviceFromHost();
+				this->gradientX_depth->UpdateDeviceFromHost();
+				this->gradientY_depth->UpdateDeviceFromHost();
 			}
 
 			~ITMViewHierarchyLevel(void)
@@ -57,6 +64,7 @@ namespace ITMLib
 					delete rgb;
 					delete depth;
 					delete gradientX_rgb; delete gradientY_rgb;
+					delete gradientX_depth; delete gradientY_depth;
 				}
 			}
 

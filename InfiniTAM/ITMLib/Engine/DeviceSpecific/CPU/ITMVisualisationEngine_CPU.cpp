@@ -264,6 +264,63 @@ static void CreatePointCloud_common(const ITMScene<TVoxel,TIndex> *scene, const 
 }
 
 template<class TVoxel, class TIndex>
+static void CreateICPMaps_common(const ITMScene<TVoxel,TIndex> *scene, const ITMView *view, ITMTrackingState *trackingState, ITMRenderState *renderState, bool skipPoints)
+{
+	Vector2i imgSize = renderState->raycastResult->noDims;
+	Matrix4f invM = trackingState->pose_d->GetInvM();
+
+	GenericRaycast(scene, imgSize, invM, view->calib->intrinsics_d.projectionParamsSimple.all, renderState);
+	trackingState->pose_pointCloud->SetFrom(trackingState->pose_d);
+
+	Vector3f lightSource = -Vector3f(invM.getColumn(2));
+	Vector4f *normalsMap = trackingState->pointCloud->colours->GetData(MEMORYDEVICE_CPU);
+	Vector4u *outRendering = renderState->raycastImage->GetData(MEMORYDEVICE_CPU);
+	Vector4f *pointsMap = trackingState->pointCloud->locations->GetData(MEMORYDEVICE_CPU);
+	Vector4f *pointsRay = renderState->raycastResult->GetData(MEMORYDEVICE_CPU);
+	Vector4f *coloursMap = trackingState->pointCloud->colours2->GetData(MEMORYDEVICE_CPU);
+	float voxelSize = scene->sceneParams->voxelSize;
+
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
+  memset(coloursMap, 0, sizeof(float) * 4 * imgSize.x * imgSize.y);
+//	memset(outRendering, 0, sizeof(uchar) * 4 * imgSize.x * imgSize.y);
+	for (int y = 0; y < imgSize.y; y++) for (int x = 0; x < imgSize.x; x++) {
+    processPixelICP<true>(outRendering, pointsMap, normalsMap, pointsRay, imgSize, x, y, voxelSize, lightSource);
+
+    const Vector4f& intrinsics = view->calib->intrinsics_rgb.projectionParamsSimple.all;
+    const Vector4f& point_g = pointsRay[x + y * imgSize.x];
+    //Vector4f point_rgb = view->calib->trafo_rgb_to_depth.calib_inv * trackingState->pose_d->GetM() * point_g * voxelSize; point_rgb.w = 1.0f;
+    Vector4f point_d = Vector4f((x-intrinsics.z)/intrinsics.x, (y-intrinsics.w)/intrinsics.y, 1, 0)*view->depth->GetData(MEMORYDEVICE_CPU)[x+y*imgSize.x];
+		Vector4f point_rgb = view->calib->trafo_rgb_to_depth.calib_inv * point_d; point_rgb.w = 1;
+    int u_rgb_x = (int)(intrinsics.x * point_rgb.x / point_rgb.z + intrinsics.z);
+    int u_rgb_y = (int)(intrinsics.y * point_rgb.y / point_rgb.z + intrinsics.w);
+    int u_rgb_id = u_rgb_x + u_rgb_y * imgSize.x;
+    if (u_rgb_x >= 0 && u_rgb_x < imgSize.x && u_rgb_y >= 0 && u_rgb_y < imgSize.y)
+		{
+      if (point_g.w > 0.0f && point_d.z > 0.0f)
+      {
+        Vector4f colour;
+        colour = VoxelColorReader<TVoxel::hasColorInformation, TVoxel, TIndex>::interpolate(scene->localVBA.GetVoxelBlocks(), scene->index.getIndexData(), point_g.toVector3());
+        if (colour.w > 0.0f) { colour.x /= colour.w; colour.y /= colour.w; colour.z /= colour.w; colour.w = 1.0f; }
+        else { colour = Vector4f(0.0f); colour.w = -1; }
+        coloursMap[u_rgb_id] = colour;
+//				outRendering[u_rgb_id].x = (uchar)(colour.x * 255);
+//				outRendering[u_rgb_id].y = (uchar)(colour.y * 255);
+//				outRendering[u_rgb_id].z = (uchar)(colour.z * 255);
+//				outRendering[u_rgb_id].w = 255;
+      }
+      else
+      {
+				coloursMap[u_rgb_id] = Vector4f(0.0f);
+				coloursMap[u_rgb_id].w = -1;
+//				outRendering[u_rgb_id] = Vector4u((uchar)0);
+      }
+		}
+  }
+}
+
+template<class TVoxel, class TIndex>
 static void CreateICPMaps_common(const ITMScene<TVoxel,TIndex> *scene, const ITMView *view, ITMTrackingState *trackingState, ITMRenderState *renderState)
 {
 	Vector2i imgSize = renderState->raycastResult->noDims;
@@ -418,6 +475,35 @@ template<class TVoxel>
 void ITMVisualisationEngine_CPU<TVoxel, ITMVoxelBlockHash>::ForwardRender(const ITMView *view, ITMTrackingState *trackingState,
 	ITMRenderState *renderState) const
 {
+	ForwardRender_common(this->scene, view, trackingState, renderState);
+}
+
+template<class TVoxel, class TIndex>
+void ITMVisualisationEngine_CPU<TVoxel,TIndex>::CreateICPMaps(const ITMView *view, ITMTrackingState *trackingState, ITMRenderState *renderState, bool skipPoints) const
+{
+	CreateICPMaps_common(this->scene, view, trackingState, renderState, skipPoints);
+}
+
+template<class TVoxel>
+void ITMVisualisationEngine_CPU<TVoxel,ITMVoxelBlockHash>::CreateICPMaps(const ITMView *view, ITMTrackingState *trackingState,
+	ITMRenderState *renderState, bool skipPoints) const
+{
+	CreateICPMaps_common(this->scene, view, trackingState, renderState, skipPoints);
+}
+
+template<class TVoxel, class TIndex>
+void ITMVisualisationEngine_CPU<TVoxel, TIndex>::ForwardRender(const ITMView *view, ITMTrackingState *trackingState,
+	ITMRenderState *renderState, bool skipPoints) const
+{
+	//FIXME
+	ForwardRender_common(this->scene, view, trackingState, renderState);
+}
+
+template<class TVoxel>
+void ITMVisualisationEngine_CPU<TVoxel, ITMVoxelBlockHash>::ForwardRender(const ITMView *view, ITMTrackingState *trackingState,
+	ITMRenderState *renderState, bool skipPoints) const
+{
+	//FIXME
 	ForwardRender_common(this->scene, view, trackingState, renderState);
 }
 

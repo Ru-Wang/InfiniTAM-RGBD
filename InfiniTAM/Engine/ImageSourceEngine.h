@@ -1,4 +1,4 @@
-// Copyright 2014-2015 Isis Innovation Limited and the authors of InfiniTAM
+// Copyright 2014 Isis Innovation Limited and the authors of InfiniTAM
 
 #pragma once
 
@@ -49,17 +49,18 @@ namespace InfiniTAM
 		class CalibSource : public ImageSourceEngine
 		{
 		private:
-			Vector2i imgSize;
+			Vector2i rgbImageSize;
+			Vector2i depthImageSize;
 			void ResizeIntrinsics(ITMIntrinsics &intrinsics, float ratio);
 
 		public:
-			CalibSource(const char *calibFilename, Vector2i setImageSize, float ratio);
+			CalibSource(const char* calibFilename, Vector2i rgbImageSize, float rgbRatio, Vector2i depthImageSize, float depthRatio);
 			~CalibSource() { }
 
 			bool hasMoreImages(void) { return true; }
 			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth) { }
-			Vector2i getDepthImageSize(void) { return imgSize; }
-			Vector2i getRGBImageSize(void) { return imgSize; }
+			Vector2i getDepthImageSize(void) { return depthImageSize; }
+			Vector2i getRGBImageSize(void) { return rgbImageSize; }
 		};
 
 		class RawFileReader : public ImageSourceEngine
@@ -76,18 +77,19 @@ namespace InfiniTAM
 			int cachedFrameNo;
 			int currentFrameNo;
 
-			Vector2i imgSize;
+			Vector2i rgbImageSize;
+			Vector2i depthImageSize;
 			void ResizeIntrinsics(ITMIntrinsics &intrinsics, float ratio);
 
 		public:
-			RawFileReader(const char *calibFilename, const char *rgbImageMask, const char *depthImageMask, Vector2i setImageSize, float ratio);
+			RawFileReader(const char *calibFilename, const char *rgbImageMask, const char *depthImageMask, Vector2i rgbImageSize, float rgbRatio, Vector2i depthImageSize, float depthRatio);
 			~RawFileReader() { }
 
 			bool hasMoreImages(void);
 			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth);
 
-			Vector2i getDepthImageSize(void) { return imgSize; }
-			Vector2i getRGBImageSize(void) { return imgSize; }
+			Vector2i getDepthImageSize(void) { return depthImageSize; }
+			Vector2i getRGBImageSize(void) { return rgbImageSize; }
 		};
 	}
 }
