@@ -17,6 +17,8 @@ __global__ void filterSubsampleWithHoles_device(Vector4f *imageData_out, Vector2
 
 __global__ void gradientX_device(Vector4s *grad, const Vector4u *image, Vector2i imgSize);
 __global__ void gradientY_device(Vector4s *grad, const Vector4u *image, Vector2i imgSize);
+__global__ void gradientX_device(float *grad, const float *image, Vector2i imgSize);
+__global__ void gradientY_device(float *grad, const float *image, Vector2i imgSize);
 
 // host methods
 
@@ -124,6 +126,38 @@ void ITMLowLevelEngine_CUDA::GradientY(ITMShort4Image *grad_out, const ITMUChar4
 	gradientY_device << <gridSize, blockSize >> >(grad, image, imgSize);
 }
 
+void ITMLowLevelEngine_CUDA::GradientX(ITMFloatImage *grad_out, const ITMFloatImage *image_in) const
+{
+	grad_out->ChangeDims(image_in->noDims);
+	Vector2i imgSize = image_in->noDims;
+
+	float *grad = grad_out->GetData(MEMORYDEVICE_CUDA);
+	const float *image = image_in->GetData(MEMORYDEVICE_CUDA);
+
+	dim3 blockSize(16, 16);
+	dim3 gridSize((int)ceil((float)imgSize.x / (float)blockSize.x), (int)ceil((float)imgSize.y / (float)blockSize.y));
+
+	ITMSafeCall(cudaMemset(grad, 0, imgSize.x * imgSize.y * sizeof(float)));
+
+	gradientX_device << <gridSize, blockSize >> >(grad, image, imgSize);
+}
+
+void ITMLowLevelEngine_CUDA::GradientY(ITMFloatImage *grad_out, const ITMFloatImage *image_in) const
+{
+	grad_out->ChangeDims(image_in->noDims);
+	Vector2i imgSize = image_in->noDims;
+
+	float *grad = grad_out->GetData(MEMORYDEVICE_CUDA);
+	const float *image = image_in->GetData(MEMORYDEVICE_CUDA);
+
+	dim3 blockSize(16, 16);
+	dim3 gridSize((int)ceil((float)imgSize.x / (float)blockSize.x), (int)ceil((float)imgSize.y / (float)blockSize.y));
+
+	ITMSafeCall(cudaMemset(grad, 0, imgSize.x * imgSize.y * sizeof(float)));
+
+	gradientY_device << <gridSize, blockSize >> >(grad, image, imgSize);
+}
+
 // device functions
 
 __global__ void filterSubsample_device(Vector4u *imageData_out, Vector2i newDims, const Vector4u *imageData_in, Vector2i oldDims)
@@ -163,6 +197,24 @@ __global__ void gradientX_device(Vector4s *grad, const Vector4u *image, Vector2i
 }
 
 __global__ void gradientY_device(Vector4s *grad, const Vector4u *image, Vector2i imgSize)
+{
+	int x = threadIdx.x + blockIdx.x * blockDim.x, y = threadIdx.y + blockIdx.y * blockDim.y;
+
+	if (x < 2 || x > imgSize.x - 2 || y < 2 || y > imgSize.y - 2) return;
+
+	gradientY(grad, x, y, image, imgSize);
+}
+
+__global__ void gradientX_device(float *grad, const float *image, Vector2i imgSize)
+{
+	int x = threadIdx.x + blockIdx.x * blockDim.x, y = threadIdx.y + blockIdx.y * blockDim.y;
+
+	if (x < 2 || x > imgSize.x - 2 || y < 2 || y > imgSize.y - 2) return;
+
+	gradientX(grad, x, y, image, imgSize);
+}
+
+__global__ void gradientY_device(float *grad, const float *image, Vector2i imgSize)
 {
 	int x = threadIdx.x + blockIdx.x * blockDim.x, y = threadIdx.y + blockIdx.y * blockDim.y;
 

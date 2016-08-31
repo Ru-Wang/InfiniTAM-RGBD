@@ -94,6 +94,7 @@ Engine/DeviceSpecific/CPU/ITMMeshingEngine_CPU.h
 ##
 set(ITMLIB_ENGINE_DEVICESPECIFIC_CUDA_SOURCES
 Engine/DeviceSpecific/CUDA/ITMColorTracker_CUDA.cu
+Engine/DeviceSpecific/CUDA/ITMRGBDepthTracker_CUDA.cu
 Engine/DeviceSpecific/CUDA/ITMDepthTracker_CUDA.cu
 Engine/DeviceSpecific/CUDA/ITMWeightedICPTracker_CUDA.cu
 Engine/DeviceSpecific/CUDA/ITMLowLevelEngine_CUDA.cu
@@ -107,6 +108,7 @@ Engine/DeviceSpecific/CUDA/ITMMeshingEngine_CUDA.cu
 
 set(ITMLIB_ENGINE_DEVICESPECIFIC_CUDA_HEADERS
 Engine/DeviceSpecific/CUDA/ITMColorTracker_CUDA.h
+Engine/DeviceSpecific/CUDA/ITMRGBDepthTracker_CUDA.h
 Engine/DeviceSpecific/CUDA/ITMCUDAUtils.h
 Engine/DeviceSpecific/CUDA/ITMDepthTracker_CUDA.h
 Engine/DeviceSpecific/CUDA/ITMWeightedICPTracker_CUDA.h

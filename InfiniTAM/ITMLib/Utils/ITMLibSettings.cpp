@@ -39,12 +39,12 @@ ITMLibSettings::ITMLibSettings(void)
 	/// enable or disable bilateral depth filtering;
 	useBilateralFilter = false;
 
-	//trackerType = TRACKER_COLOR;
+	trackerType = TRACKER_COLOR;
 	//trackerType = TRACKER_ICP;
 	//trackerType = TRACKER_REN;
 	//trackerType = TRACKER_IMU;
 	//trackerType = TRACKER_WICP;
-	trackerType = TRACKER_RGBD;
+	//trackerType = TRACKER_RGBD;
 
 	/// model the sensornoise as  the weight for weighted ICP
 	modelSensorNoise = false;
@@ -63,13 +63,12 @@ ITMLibSettings::ITMLibSettings(void)
 	}
 	else if (trackerType == TRACKER_RGBD)
 	{
-		noHierarchyLevels = 4;
+		noHierarchyLevels = 3;
 		trackingRegime = new TrackerIterationType[noHierarchyLevels];
 
 		trackingRegime[0] = TRACKER_ITERATION_BOTH;
 		trackingRegime[1] = TRACKER_ITERATION_ROTATION;
 		trackingRegime[2] = TRACKER_ITERATION_ROTATION;
-		trackingRegime[3] = TRACKER_ITERATION_ROTATION;
 	}
 	else
 	{

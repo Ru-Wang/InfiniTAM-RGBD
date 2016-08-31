@@ -19,6 +19,7 @@
 
 #ifndef COMPILE_WITHOUT_CUDA
 #include "DeviceSpecific/CUDA/ITMColorTracker_CUDA.h"
+#include "DeviceSpecific/CUDA/ITMRGBDepthTracker_CUDA.h"
 #include "DeviceSpecific/CUDA/ITMDepthTracker_CUDA.h"
 #include "DeviceSpecific/CUDA/ITMWeightedICPTracker_CUDA.h"
 #include "DeviceSpecific/CUDA/ITMRenTracker_CUDA.h"
@@ -152,7 +153,7 @@ namespace ITMLib
             ITMCompositeTracker *compositeTracker = new ITMCompositeTracker(2);
             compositeTracker->SetTracker(new ITMIMUTracker(imuCalibrator), 0);
             compositeTracker->SetTracker(
-              new ITMColorTracker_CUDA(
+              new ITMRGBDepthTracker_CUDA(
                 trackedImageSize,
                 settings->trackingRegime,
                 settings->noHierarchyLevels,
